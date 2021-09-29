@@ -6,7 +6,7 @@
  * @flow strict-local
  */
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {Node} from 'react';
 import {
   SafeAreaView,
@@ -54,14 +54,35 @@ const Section = ({children, title}): Node => {
   );
 };
 
+const NotificationListener = async () => {
+  messaging().onNotificationOpenedApp(remoteMessage => {
+    console.log("Notification background state >>>", remoteMessage.notification);
+  });
+  messaging().onMessage(async remoteMessage => {
+    console.log("Message foreground >>>", remoteMessage);
+  })
+  messaging()
+  .getInitialNotification().then(remoteMessage => {
+    if (remoteMessage) {
+      console.log("Initial Notification >>>", remoteMessage.notification);
+
+    }
+  });
+};
+// ON FCM token generation
 const getFCMToken = async () => {
   const fcmToken = await messaging().getToken();
   console.log('FCM Token: ', fcmToken);
 };
-const App: () => Node = () => {
+const App: () => Node = () => { 
+
+  useEffect(() => {
+
+    NotificationListener();
+    getFCMToken();
+  }, []);
   const isDarkMode = useColorScheme() === 'dark';
   console.log('Running the Script');
-  getFCMToken();
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
